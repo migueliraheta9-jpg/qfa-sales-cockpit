@@ -241,22 +241,33 @@ export default function DiagnosticoView({ lead, isPublic = false }) {
         )}
 
         {/* CTA al final si es vista pública del cliente */}
-        {isPublic && allComplete && (
-          <div className="mt-12 text-center">
-            <p className="text-2xl italic mb-6" style={{ color: COLORS.white, fontFamily: 'Instrument Serif, serif' }}>
-              ¿Listo para empezar a corregir?
-            </p>
-            <a href="https://wa.me/50300000000?text=Confirmo%20mi%20cupo%20en%20QF%20Accelerator"
-              target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-md font-bold text-lg transition-all hover:opacity-90"
-              style={{ background: COLORS.green, color: COLORS.bg }}>
-              Confirmar mi cupo por WhatsApp →
-            </a>
-            <p className="text-xs mt-4 italic" style={{ color: COLORS.muted }}>
-              Solo 5 cupos por mes · Auditoría inicial gratis si confirmas en 48h
-            </p>
-          </div>
-        )}
+        {isPublic && allComplete && (() => {
+          const waNumber = '50370137129';
+          const clientName = lead.name || 'Cliente QF';
+          const waMessage = `Hola Miguel 👋
+
+Vengo de revisar mi diagnóstico de QF Accelerator.
+Quiero confirmar mi cupo y agendar el siguiente paso.
+
+— ${clientName}`;
+          const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}`;
+          return (
+            <div className="mt-12 text-center">
+              <p className="text-2xl italic mb-6" style={{ color: COLORS.white, fontFamily: 'Instrument Serif, serif' }}>
+                ¿Listo para empezar a corregir?
+              </p>
+              <a href={waUrl}
+                target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-md font-bold text-lg transition-all hover:opacity-90"
+                style={{ background: COLORS.green, color: COLORS.bg }}>
+                Confirmar mi cupo por WhatsApp →
+              </a>
+              <p className="text-xs mt-4 italic" style={{ color: COLORS.muted }}>
+                Solo 5 cupos por mes · Auditoría inicial gratis si confirmas en 48h
+              </p>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
