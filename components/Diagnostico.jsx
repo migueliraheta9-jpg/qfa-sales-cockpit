@@ -2,7 +2,7 @@
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import {
   ArrowRight, Crosshair, Brain, Shield, BarChart3, GraduationCap, DollarSign,
-  Sparkles, Target,
+  Sparkles, Target, AlertTriangle,
 } from 'lucide-react';
 import { COLORS, getLeadAccent } from '../lib/constants';
 import {
@@ -114,8 +114,8 @@ export default function DiagnosticoView({ lead, isPublic = false }) {
                   <PolarGrid stroke={COLORS.border} />
                   <PolarAngleAxis dataKey="axis" tick={{ fill: COLORS.white, fontSize: 13, fontWeight: 600 }} />
                   <PolarRadiusAxis domain={[0, 10]} tick={false} axisLine={false} />
-                  <Radar name="Hoy" dataKey="actual" stroke={accent.color} fill={accent.color} fillOpacity={0.35} strokeWidth={2} />
-                  <Radar name="Con QF a 12 meses" dataKey="proyectado" stroke={COLORS.green} fill={COLORS.green} fillOpacity={0.05} strokeWidth={2} strokeDasharray="6 6" />
+                  <Radar name="Hoy" dataKey="actual" stroke={accent.color} fill={accent.color} fillOpacity={0.18} strokeWidth={2} />
+                  <Radar name="Con QF a 12 meses" dataKey="proyectado" stroke={COLORS.green} fill={COLORS.green} fillOpacity={0.18} strokeWidth={2} strokeDasharray="6 6" />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -149,7 +149,9 @@ export default function DiagnosticoView({ lead, isPublic = false }) {
 
             {allComplete && (
               <div className="rounded-lg p-7" style={{ background: COLORS.bgLight, border: `1px solid ${COLORS.orange}55` }}>
-                <div className="text-[10px] tracking-[0.3em] mb-3" style={{ color: COLORS.orange }}>TU CUELLO DE BOTELLA</div>
+                <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] mb-3" style={{ color: COLORS.orange }}>
+                  <AlertTriangle size={12} /> TU CUELLO DE BOTELLA
+                </div>
                 <div className="text-4xl mb-3" style={{ fontFamily: 'Instrument Serif, serif', color: COLORS.white, fontStyle: 'italic' }}>
                   {cuello}.
                 </div>
@@ -259,7 +261,7 @@ Quiero confirmar mi cupo y agendar el siguiente paso.
               <a href={waUrl}
                 target="_blank" rel="noreferrer"
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-md font-bold text-lg transition-all hover:opacity-90"
-                style={{ background: COLORS.green, color: COLORS.bg }}>
+                style={{ background: 'transparent', color: COLORS.green, border: `1px solid ${COLORS.green}` }}>
                 Confirmar mi cupo por WhatsApp →
               </a>
               <p className="text-xs mt-4 italic" style={{ color: COLORS.muted }}>

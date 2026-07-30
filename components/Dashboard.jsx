@@ -85,7 +85,7 @@ export default function Dashboard({ leads, user, onNewCall, onOpenLead, onDelete
             onClick={onNewCall}
             disabled={loading}
             className="flex items-center gap-2 px-6 py-3.5 font-bold rounded-md transition-all hover:opacity-90 disabled:opacity-50"
-            style={{ background: COLORS.white, color: COLORS.bg }}
+            style={{ background: 'transparent', color: COLORS.white, border: `1px solid ${COLORS.white}` }}
           >
             <Plus size={18} /> Nueva Sesión
           </button>
@@ -200,7 +200,7 @@ export default function Dashboard({ leads, user, onNewCall, onOpenLead, onDelete
                       <Eye size={16} />
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); setLeadToDelete(lead); }}
-                      className="p-2 rounded-md transition" style={{ background: COLORS.orange + '15', color: COLORS.orange }} title="Borrar sesión">
+                      className="p-2 rounded-md transition" style={{ background: COLORS.fail + '15', color: COLORS.fail }} title="Borrar sesión">
                       <Trash2 size={16} />
                     </button>
                   </div>

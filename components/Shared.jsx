@@ -1,5 +1,5 @@
 'use client';
-import { Flame, Activity, Snowflake, CheckCircle2, X, Circle } from 'lucide-react';
+import { Flame, Activity, Snowflake, CheckCircle2, X, Circle, AlertOctagon, RefreshCw } from 'lucide-react';
 import { COLORS } from '../lib/constants';
 
 export function QFAHeader({ rightSlot }) {
@@ -52,5 +52,56 @@ export function StatusBadge({ status, size = 'md' }) {
     >
       {s.icon} {s.label}
     </span>
+  );
+}
+
+// Bloque de skeleton: reproduce la silueta del contenido real en vez de un
+// spinner genérico. Usa animate-pulse (utilidad nativa de Tailwind, sin CSS
+// ni dependencias nuevas).
+export function Skeleton({ className = '', style = {} }) {
+  return (
+    <div
+      className={`animate-pulse rounded ${className}`}
+      style={{ background: COLORS.bgLighter, ...style }}
+    />
+  );
+}
+
+// Estado de error de página completa: mensaje legible + botón de reintentar
+// + código de error visible. Reemplaza los "Cargando…" que antes se
+// quedaban pegados si algo fallaba.
+export function ErrorState({ title, message, code, onRetry, retryLabel = 'Reintentar', retryHref }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-8" style={{ background: COLORS.bg }}>
+      <div className="max-w-lg text-center">
+        <div className="flex justify-center mb-4" style={{ color: COLORS.fail }}>
+          <AlertOctagon size={28} />
+        </div>
+        <div className="text-2xl mb-3" style={{ fontFamily: 'Instrument Serif, serif', color: COLORS.white }}>
+          {title}
+        </div>
+        <p className="text-sm mb-6 leading-relaxed" style={{ color: COLORS.muted }}>{message}</p>
+        {(onRetry || retryHref) && (
+          retryHref ? (
+            <a href={retryHref}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md font-bold transition-all hover:opacity-90"
+              style={{ background: 'transparent', color: COLORS.fail, border: `1px solid ${COLORS.fail}` }}>
+              <RefreshCw size={16} /> {retryLabel}
+            </a>
+          ) : (
+            <button onClick={onRetry}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-md font-bold transition-all hover:opacity-90"
+              style={{ background: 'transparent', color: COLORS.fail, border: `1px solid ${COLORS.fail}` }}>
+              <RefreshCw size={16} /> {retryLabel}
+            </button>
+          )
+        )}
+        {code && (
+          <div className="text-[10px] tracking-[0.2em] mt-6" style={{ color: COLORS.muted, fontFamily: 'JetBrains Mono, monospace' }}>
+            {code}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

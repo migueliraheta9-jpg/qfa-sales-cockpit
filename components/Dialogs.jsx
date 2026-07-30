@@ -28,7 +28,7 @@ export function CloseDialog({ lead, onConfirm, onCancel }) {
             Cancelar
           </button>
           <button onClick={onConfirm} className="flex-1 px-4 py-2.5 rounded-md font-bold"
-            style={{ background: COLORS.green, color: COLORS.bg }}>
+            style={{ background: 'transparent', color: COLORS.green, border: `1px solid ${COLORS.green}` }}>
             Confirmar
           </button>
         </div>
@@ -40,7 +40,7 @@ export function CloseDialog({ lead, onConfirm, onCancel }) {
 export function DeleteDialog({ lead, onConfirm, onCancel }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
-      <div className="rounded-lg border p-6 max-w-md w-full" style={{ background: COLORS.bgLight, borderColor: COLORS.orange + '66' }}>
+      <div className="rounded-lg border p-6 max-w-md w-full" style={{ background: COLORS.bgLight, borderColor: COLORS.fail + '66' }}>
         <h3 className="text-2xl mb-1" style={{ fontFamily: 'Instrument Serif, serif', color: COLORS.white }}>
           Borrar sesión
         </h3>
@@ -54,7 +54,7 @@ export function DeleteDialog({ lead, onConfirm, onCancel }) {
             Cancelar
           </button>
           <button onClick={onConfirm} className="flex-1 px-4 py-2.5 rounded-md font-bold"
-            style={{ background: COLORS.orange, color: COLORS.bg }}>
+            style={{ background: COLORS.fail, color: COLORS.bg }}>
             Borrar
           </button>
         </div>

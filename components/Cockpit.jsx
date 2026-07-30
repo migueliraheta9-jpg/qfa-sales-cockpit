@@ -240,7 +240,7 @@ function ObjectionModal({ objectionId, lead, onClose }) {
         <div className="px-8 py-4 flex items-center justify-between border-t" style={{ background: COLORS.bg, borderColor: COLORS.border }}>
           <div className="text-xs italic" style={{ color: COLORS.muted }}>Esc para cerrar · datos del cliente inyectados automáticamente</div>
           <button onClick={handleCopy} className="flex items-center gap-2 px-5 py-2.5 rounded-md font-bold transition-all"
-            style={{ background: copied ? COLORS.green : COLORS.white, color: COLORS.bg }}>
+            style={{ background: 'transparent', color: copied ? COLORS.green : COLORS.white, border: `1px solid ${copied ? COLORS.green : COLORS.white}` }}>
             <Copy size={16} /> {copied ? '¡Script copiado!' : 'Copiar script'}
           </button>
         </div>
@@ -357,12 +357,17 @@ export default function Cockpit({ lead, onUpdate, onClose, onShareScreen, onDele
               </div>
               <button disabled={!canPresent} onClick={onShareScreen}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-md font-bold transition-all"
-                style={{ background: canPresent ? COLORS.orange : COLORS.bgLighter, color: canPresent ? COLORS.bg : COLORS.muted, cursor: canPresent ? 'pointer' : 'not-allowed' }}
+                style={{
+                  background: canPresent ? 'transparent' : COLORS.bgLighter,
+                  color: canPresent ? COLORS.orange : COLORS.muted,
+                  border: canPresent ? `1px solid ${COLORS.orange}` : '1px solid transparent',
+                  cursor: canPresent ? 'pointer' : 'not-allowed',
+                }}
                 title={canPresent ? 'Abrir pantalla del cliente' : 'Bloqueado: completa hasta Puerta 4'}>
                 {canPresent ? <Unlock size={16} /> : <Lock size={16} />} Pantalla cliente
               </button>
               <button onClick={() => setShowCloseDialog(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-md font-bold transition-all"
-                style={{ background: COLORS.green, color: COLORS.bg }}>
+                style={{ background: 'transparent', color: COLORS.green, border: `1px solid ${COLORS.green}` }}>
                 <Save size={16} /> Cerrar
               </button>
               <button onClick={() => setShowDeleteDialog(true)} className="p-2.5 rounded-md transition-all"
@@ -401,7 +406,7 @@ export default function Cockpit({ lead, onUpdate, onClose, onShareScreen, onDele
             </div>
             <div className="flex gap-2">
               <button onClick={copyReportLink} className="flex items-center gap-2 px-4 py-2 rounded-md font-bold text-sm"
-                style={{ background: reportCopied ? COLORS.green : COLORS.white, color: COLORS.bg }}>
+                style={{ background: 'transparent', color: reportCopied ? COLORS.green : COLORS.white, border: `1px solid ${reportCopied ? COLORS.green : COLORS.white}` }}>
                 <Copy size={14} /> {reportCopied ? '¡Copiado!' : 'Copiar link'}
               </button>
               <a href={reportUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-md font-bold text-sm"

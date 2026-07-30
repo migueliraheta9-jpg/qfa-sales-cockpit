@@ -4,6 +4,7 @@ import Dashboard from '../components/Dashboard';
 import Cockpit from '../components/Cockpit';
 import ClientScreen from '../components/ClientScreen';
 import LoginScreen from '../components/LoginScreen';
+import { Skeleton, ErrorState } from '../components/Shared';
 import { COLORS } from '../lib/constants';
 import {
   listLeads, createLead, updateLead, deleteLead,
@@ -19,19 +20,48 @@ export default function Page() {
   const [showClient, setShowClient] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(null);
+  const [authError, setAuthError] = useState(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   const pendingPatch = useRef({});
   const flushTimer = useRef(null);
 
-  // Auth state
+  // Auth state — con timeout: si getCurrentUser() nunca resuelve (red caída,
+  // Supabase sin responder), esto no se queda pegado en "Cargando…" para
+  // siempre, cae a un estado de error con reintentar.
   useEffect(() => {
-    getCurrentUser().then((u) => {
-      setUser(u);
-      setAuthLoaded(true);
-    });
+    let settled = false;
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        setAuthError('No se pudo verificar tu sesión. La conexión está tardando demasiado.');
+        setAuthLoaded(true);
+      }
+    }, 10000);
+
+    getCurrentUser()
+      .then((u) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        setUser(u);
+        setAuthLoaded(true);
+      })
+      .catch((err) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        console.error(err);
+        setAuthError('No se pudo verificar tu sesión. ' + err.message);
+        setAuthLoaded(true);
+      });
+
     const sub = onAuthChange((u) => setUser(u));
-    return () => sub?.unsubscribe();
-  }, []);
+    return () => {
+      clearTimeout(timeout);
+      sub?.unsubscribe();
+    };
+  }, [retryKey]);
 
   // Load leads cuando hay usuario autenticado
   useEffect(() => {
@@ -40,6 +70,7 @@ export default function Page() {
       setLeads([]);
       return;
     }
+    setError(null);
     listLeads()
       .then((data) => {
         setLeads(data);
@@ -50,7 +81,7 @@ export default function Page() {
         setError('No se pudo conectar a la base de datos. ' + err.message);
         setLoaded(true);
       });
-  }, [user]);
+  }, [user, retryKey]);
 
   const activeLead = leads.find((l) => l.id === activeId);
 
@@ -165,9 +196,27 @@ export default function Page() {
 
   if (!authLoaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.bg, color: COLORS.muted }}>
-        Cargando…
+      <div className="min-h-screen p-10" style={{ background: COLORS.bg }}>
+        <div className="max-w-6xl mx-auto flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-8" style={{ width: '220px' }} />
+            <Skeleton className="h-10" style={{ width: '160px' }} />
+          </div>
+          <Skeleton className="h-24" />
+          <Skeleton className="h-64" />
+        </div>
       </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <ErrorState
+        title="No pudimos verificar tu sesión"
+        message={authError}
+        code={`ERR_AUTH_TIMEOUT · ${new Date().toLocaleTimeString('es-SV')}`}
+        onRetry={() => { setAuthError(null); setAuthLoaded(false); setRetryKey((k) => k + 1); }}
+      />
     );
   }
 
@@ -177,25 +226,35 @@ export default function Page() {
 
   if (!loaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: COLORS.bg, color: COLORS.muted }}>
-        Cargando sesiones…
+      <div className="min-h-screen p-10" style={{ background: COLORS.bg }}>
+        <div className="max-w-6xl mx-auto flex flex-col gap-6">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-8" style={{ width: '260px' }} />
+            <Skeleton className="h-10" style={{ width: '160px' }} />
+          </div>
+          <div className="grid grid-cols-4 gap-4">
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+          </div>
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8" style={{ background: COLORS.bg }}>
-        <div className="max-w-lg text-center">
-          <div className="text-2xl mb-4" style={{ fontFamily: 'Instrument Serif, serif', color: COLORS.orange }}>
-            Error de conexión
-          </div>
-          <p className="text-sm mb-6" style={{ color: COLORS.muted }}>{error}</p>
-          <button onClick={handleLogout} className="px-4 py-2 rounded-md font-bold" style={{ background: COLORS.white, color: COLORS.bg }}>
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
+      <ErrorState
+        title="Error de conexión"
+        message={error}
+        code={`ERR_FETCH_LEADS · ${new Date().toLocaleTimeString('es-SV')}`}
+        onRetry={() => { setError(null); setLoaded(false); setRetryKey((k) => k + 1); }}
+        retryLabel="Reintentar"
+      />
     );
   }
 

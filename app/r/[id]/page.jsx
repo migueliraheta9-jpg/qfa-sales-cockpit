@@ -2,17 +2,32 @@ import { getLeadByPublicId } from '../../../lib/supabase';
 import { COLORS } from '../../../lib/constants';
 import DiagnosticoView from '../../../components/Diagnostico';
 import { RutaView } from '../../../components/RutaStack';
-import { QFAHeader } from '../../../components/Shared';
+import { QFAHeader, ErrorState } from '../../../components/Shared';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PublicReport({ params }) {
   const { id } = params;
   let lead = null;
+  let fetchFailed = false;
   try {
     lead = await getLeadByPublicId(id);
   } catch (e) {
     console.error('Error al cargar reporte:', e);
+    fetchFailed = true;
+  }
+
+  // Error real (falló la conexión) — distinto de "no existe": mensaje,
+  // reintentar y código de error visibles.
+  if (fetchFailed) {
+    return (
+      <ErrorState
+        title="No pudimos cargar tu diagnóstico"
+        message="El enlace es válido, pero la conexión falló. Reintentá; si sigue igual, escribinos y te lo reenviamos."
+        code={`ERR_FETCH_REPORT · /r/${id}`}
+        retryHref={`/r/${id}`}
+      />
+    );
   }
 
   if (!lead) {

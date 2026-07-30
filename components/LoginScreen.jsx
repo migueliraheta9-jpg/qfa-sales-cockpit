@@ -44,7 +44,7 @@ export default function LoginScreen() {
             onClick={handleLogin}
             disabled={loading}
             className="w-full px-6 py-4 rounded-md font-bold transition-all hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-3"
-            style={{ background: COLORS.white, color: COLORS.bg }}
+            style={{ background: 'transparent', color: COLORS.white, border: `1px solid ${COLORS.white}` }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -56,12 +56,12 @@ export default function LoginScreen() {
           </button>
 
           {error && (
-            <div className="mt-6 p-4 rounded-md text-sm text-left" style={{ background: COLORS.orange + '15', border: `1px solid ${COLORS.orange}55`, color: COLORS.orange }}>
+            <div className="mt-6 p-4 rounded-md text-sm text-left" style={{ background: COLORS.fail + '15', border: `1px solid ${COLORS.fail}55`, color: COLORS.fail }}>
               {error}
             </div>
           )}
 
-          <p className="text-xs mt-8" style={{ color: COLORS.mutedDim }}>
+          <p className="text-xs mt-8" style={{ color: COLORS.muted }}>
             Solo cuentas autorizadas pueden acceder.<br />
             Si no tienes acceso, contacta a Miguel.
           </p>
