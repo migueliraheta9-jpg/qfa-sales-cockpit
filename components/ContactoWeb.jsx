@@ -9,7 +9,7 @@
 //   ni en el Dashboard.
 // - Solo lo ve y lo edita el equipo (staff_allowlist); lo decide la base de datos.
 import { useCallback, useEffect, useState } from 'react';
-import { Phone, Mail, Pencil, RefreshCw, Video, AlertTriangle } from 'lucide-react';
+import { Phone, Mail, Pencil, RefreshCw, Video, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { COLORS } from '../lib/constants';
 import { getContactoByLeadId, editarContacto } from '../lib/supabase';
 import { PAISES, OTRO_PAIS, PAIS_POR_DEFECTO, validarTelefono, separarWhatsapp } from '../lib/paises';
@@ -106,6 +106,8 @@ export default function ContactoWeb({ leadId }) {
   const [errorTelefono, setErrorTelefono] = useState(null);
   const [errorGuardar, setErrorGuardar] = useState(null);
   const [guardando, setGuardando] = useState(false);
+  // Confirmación visible tras guardar: 'guardado' | 'sin_cambios' | null.
+  const [aviso, setAviso] = useState(null);
 
   const cargar = useCallback(async () => {
     setEstado('cargando');
@@ -131,28 +133,53 @@ export default function ContactoWeb({ leadId }) {
     setValores(valoresDeRespuestas(PREGUNTAS, contacto?.precal_respuestas));
     setErrorTelefono(null);
     setErrorGuardar(null);
+    setAviso(null);
     setEditando(true);
   };
 
+  // "Guardar" termina SIEMPRE en uno de estos tres resultados visibles:
+  //   1. Confirmación "Guardado" con el dato nuevo ya leído de la base.
+  //   2. "No había cambios que guardar".
+  //   3. Un mensaje de error (validación, permiso, red o tiempo agotado), con el formulario abierto.
+  // Nunca se queda en "Guardando…" ni se cierra sin decir nada.
   const guardar = async (evento) => {
     evento.preventDefault();
     if (guardando) return;
-    const telefono = validarTelefono(pais, numero);
-    setErrorTelefono(telefono.error);
-    if (telefono.error) return;
-
     setGuardando(true);
     setErrorGuardar(null);
     try {
-      await editarContacto(leadId, {
-        whatsapp: telefono.whatsapp, // '' = borrar el número
+      const telefono = validarTelefono(pais, numero);
+      setErrorTelefono(telefono.error);
+      if (telefono.error) return;
+
+      const anterior = contacto?.whatsapp || '';
+      const respuestasNuevas =
         // Sin preguntas configuradas no hay nada que editar: las respuestas no se tocan.
-        respuestas: PREGUNTAS.length > 0 ? combinarRespuestas(PREGUNTAS, contacto?.precal_respuestas, valores) : undefined,
-      });
-      setContacto(await getContactoByLeadId(leadId));
+        PREGUNTAS.length > 0 ? combinarRespuestas(PREGUNTAS, contacto?.precal_respuestas, valores) : undefined;
+      const cambiaTelefono = telefono.whatsapp !== anterior;
+      const cambianRespuestas =
+        respuestasNuevas !== undefined && JSON.stringify(respuestasNuevas) !== JSON.stringify(contacto?.precal_respuestas || {});
+      if (contacto && !cambiaTelefono && !cambianRespuestas) {
+        setAviso('sin_cambios');
+        setEditando(false);
+        return;
+      }
+
+      await editarContacto(leadId, { whatsapp: telefono.whatsapp /* '' = borrar el número */, respuestas: respuestasNuevas });
+
+      // Se vuelve a leer de la base y se COMPRUEBA: solo se confirma lo que de verdad quedó guardado.
+      const guardado = await getContactoByLeadId(leadId);
+      if ((guardado?.whatsapp || '') !== telefono.whatsapp) {
+        if (guardado) setContacto(guardado);
+        throw new Error('La base de datos no devolvió el número nuevo: el cambio NO quedó guardado. Inténtalo de nuevo.');
+      }
+      setContacto(guardado);
+      setAviso('guardado');
       setEditando(false);
     } catch (err) {
-      setErrorGuardar(err?.message || 'No se pudo guardar.');
+      console.error('[contacto] no se pudo guardar:', err?.code || '', err?.message);
+      const codigo = err?.code && err.code !== 'tiempo_agotado' ? ` (código ${err.code})` : '';
+      setErrorGuardar((err?.message || 'No se pudo guardar.') + codigo);
     } finally {
       setGuardando(false);
     }
@@ -188,7 +215,11 @@ export default function ContactoWeb({ leadId }) {
         <div className="text-[10px] tracking-[0.3em] font-bold" style={{ color: COLORS.cyan }}>EDITAR DATOS DE CONTACTO</div>
         <CampoTelefono pais={pais} numero={numero} onPais={setPais} onNumero={setNumero} error={errorTelefono} idBase={`ficha-${leadId}`} />
         <CamposPrecalificacion valores={valores} onChange={setValores} idBase={`ficha-precal-${leadId}`} />
-        {errorGuardar && <p role="alert" className="text-sm" style={{ color: COLORS.fail }}>{errorGuardar}</p>}
+        {errorGuardar && (
+          <p role="alert" className="text-sm rounded-md px-3 py-2" style={{ color: COLORS.fail, border: `1px solid ${COLORS.fail}66`, background: COLORS.bg }}>
+            {errorGuardar}
+          </p>
+        )}
         <div className="flex gap-2">
           <button type="button" onClick={() => setEditando(false)} disabled={guardando} className="px-4 py-2 rounded-md font-bold text-sm"
             style={{ background: 'transparent', color: COLORS.white, border: `1px solid ${COLORS.border}` }}>
@@ -220,6 +251,14 @@ export default function ContactoWeb({ leadId }) {
     );
   }
 
+  const avisoGuardado = aviso && (
+    <p role="status" className="flex items-center gap-2 text-sm mb-4 rounded-md px-3 py-2"
+      style={{ color: aviso === 'guardado' ? COLORS.green : COLORS.muted, border: `1px solid ${(aviso === 'guardado' ? COLORS.green : COLORS.border)}`, background: COLORS.bg }}>
+      {aviso === 'guardado' && <CheckCircle2 size={14} />}
+      {aviso === 'guardado' ? 'Guardado. Los datos de abajo son los que hay ahora en la base.' : 'No había cambios que guardar.'}
+    </p>
+  );
+
   const respuestas = respuestasParaMostrar(contacto.precal_respuestas);
   const consiente = contacto.whatsapp_consentimiento_marketing === true;
   const origenPartes = [
@@ -239,6 +278,7 @@ export default function ContactoWeb({ leadId }) {
         </div>
         {botonEditar('Editar')}
       </div>
+      {avisoGuardado}
 
       <div className="grid gap-5 md:grid-cols-2">
         <Bloque titulo="CONTACTO">
