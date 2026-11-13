@@ -7,6 +7,7 @@ import {
 import { COLORS, PUERTAS, OBJECTIONS, getLeadAccent } from '../lib/constants';
 import { getCompletedPuertas, isPuertasComplete, calcularTemperaturaSugerida } from '../lib/scoring';
 import { CloseDialog, DeleteDialog } from './Dialogs';
+import ContactoWeb from './ContactoWeb';
 
 function FieldEditor({ field, value, onChange }) {
   if (field.type === 'multi') {
@@ -390,6 +391,9 @@ export default function Cockpit({ lead, onUpdate, onClose, onShareScreen, onDele
             })}
           </div>
         </div>
+
+        {/* Datos de contacto (lead_contacto): solo para el equipo; nunca en la pantalla del cliente */}
+        <ContactoWeb key={lead.id} leadId={lead.id} />
 
         {/* Bloque del reporte público */}
         {allComplete && reportUrl && (
