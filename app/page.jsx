@@ -5,9 +5,10 @@ import Cockpit from '../components/Cockpit';
 import ClientScreen from '../components/ClientScreen';
 import LoginScreen from '../components/LoginScreen';
 import { Skeleton, ErrorState } from '../components/Shared';
+import { NewLeadDialog } from '../components/Dialogs';
 import { COLORS } from '../lib/constants';
 import {
-  listLeads, createLead, updateLead, deleteLead,
+  listLeads, createLead, updateLead, deleteLead, crearContactoManual,
   getCurrentUser, onAuthChange, signOut, isAdmin,
 } from '../lib/supabase';
 
@@ -22,6 +23,7 @@ export default function Page() {
   const [error, setError] = useState(null);
   const [authError, setAuthError] = useState(null);
   const [retryKey, setRetryKey] = useState(0);
+  const [showNewLead, setShowNewLead] = useState(false);
 
   const pendingPatch = useRef({});
   const flushTimer = useRef(null);
@@ -85,14 +87,27 @@ export default function Page() {
 
   const activeLead = leads.find((l) => l.id === activeId);
 
-  const handleNewCall = async () => {
-    try {
-      const lead = await createLead();
-      setLeads([lead, ...leads]);
+  const handleNewCall = () => setShowNewLead(true);
+
+  // Alta manual. El lead se crea en `leads` solo con el nombre; el teléfono y las
+  // respuestas van aparte, a lead_contacto (nunca dentro del objeto lead).
+  // abrir = true: empieza la sesión ahora (como antes). abrir = false: queda en pausa.
+  const handleCreateLead = async ({ nombre, whatsapp, respuestas, abrir }) => {
+    const now = new Date().toISOString();
+    const lead = await createLead(abrir ? { name: nombre } : { name: nombre, resumedAt: null, pausedAt: now });
+    setLeads((prev) => [lead, ...prev]);
+    setShowNewLead(false);
+    if (abrir) {
       setActiveId(lead.id);
       setView('cockpit');
-    } catch (err) {
-      alert('Error creando la sesión: ' + err.message);
+    }
+    if (whatsapp || Object.keys(respuestas).length > 0) {
+      try {
+        await crearContactoManual(lead.id, { nombre, whatsapp, respuestas });
+      } catch (err) {
+        // El lead ya existe: no se pierde. El teléfono se puede añadir desde su ficha.
+        alert('El lead se creó, pero no se pudieron guardar el teléfono ni las respuestas: ' + err.message + '\nPuedes añadirlos desde la ficha del lead.');
+      }
     }
   };
 
@@ -260,14 +275,17 @@ export default function Page() {
 
   if (view === 'dashboard') {
     return (
-      <Dashboard
-        leads={leads}
-        user={user}
-        onNewCall={handleNewCall}
-        onOpenLead={handleOpenLead}
-        onDeleteLead={handleDelete}
-        onLogout={handleLogout}
-      />
+      <>
+        <Dashboard
+          leads={leads}
+          user={user}
+          onNewCall={handleNewCall}
+          onOpenLead={handleOpenLead}
+          onDeleteLead={handleDelete}
+          onLogout={handleLogout}
+        />
+        {showNewLead && <NewLeadDialog onCreate={handleCreateLead} onCancel={() => setShowNewLead(false)} />}
+      </>
     );
   }
 

@@ -152,17 +152,13 @@ que existían (`muted` y `mutedDim`) se resolvieron en Fase 1B: `muted` se aclar
 
 1. **Mercado vs. estado, general.** Cada acento de identidad de mercado duplica
    como color de estado semántico:
-   - `cyan` (Miguel: Futuros/Forex/Acciones) = también estado `in-progress` en
+   - `cyan` (Miguel: Futuros/Cripto/Forex/Acciones) = también estado `in-progress` en
      `StatusBadge` (`Shared.jsx`).
    - `lavanda` (Jessen: Índices sintéticos) = también estado "tibio"/`warm`.
-   - `orange` (Julio: Cripto) tenía la misma colisión con "caliente"/advertencia
-     — es la que se pidió resolver en Fase 1B punto 3.
-2. **`MERCADO_COFOUNDER.Cripto.color` sigue en `COLORS.orange`.** No lo
-   reasigné: no existe, dentro de la paleta actual, un color de acento
-   (`cyan`/`lavanda`/`green`) que no tenga ya un rol semántico propio (ver punto
-   1). Mover Cripto a cualquiera de esos tres crea la misma colisión que se
-   quiso evitar, y no puedo agregar un color nuevo fuera de lo indicado. Queda
-   pendiente de decisión.
+2. **`MERCADO_COFOUNDER.Cripto` pasó a Miguel y usa `COLORS.cyan`** (decisión de
+   Miguel, 13 nov 2026). Cripto ya no usa `orange` como color de mercado, así
+   que desaparece esa colisión con "caliente"/advertencia; le aplica la misma
+   colisión general de `cyan` descrita en el punto 1.
 3. **`Dialogs.jsx` (línea de aviso del timer de bono de 48h, dentro de
    `CloseDialog`)** no se migró a `fail` aunque estaba en la lista — no es un
    error ni una acción destructiva, es un aviso informativo/de énfasis sobre un
